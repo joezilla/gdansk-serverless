@@ -1,0 +1,103 @@
+{
+    "metadata": {
+      "tags": []
+    },
+    "sys": {
+      "type": "Entry",
+      "id": "7CjEpdkEnbYcBJ8L9UfnoD",
+      "space": {
+        "sys": {
+          "type": "Link",
+          "linkType": "Space",
+          "id": "9ieso0n2yz5w"
+        }
+      },
+      "environment": {
+        "sys": {
+          "id": "master",
+          "type": "Link",
+          "linkType": "Environment"
+        }
+      },
+      "contentType": {
+        "sys": {
+          "type": "Link",
+          "linkType": "ContentType",
+          "id": "street"
+        }
+      },
+      "createdBy": {
+        "sys": {
+          "type": "Link",
+          "linkType": "User",
+          "id": "5dl0IE8GZjIDUZoyFl6Uyl"
+        }
+      },
+      "updatedBy": {
+        "sys": {
+          "type": "Link",
+          "linkType": "User",
+          "id": "5dl0IE8GZjIDUZoyFl6Uyl"
+        }
+      },
+      "revision": 12,
+      "createdAt": "2022-10-26T17:53:20.640Z",
+      "updatedAt": "2022-11-01T15:37:21.500Z"
+    },
+    "fields": {
+      "germanName": {
+        "en-US": "Röpergasse"
+      },
+      "polishNames": {
+        "en-US": [
+          "Powroźnicza"
+        ]
+      },
+      "district": {
+        "en-US": "Stadtgebiet"
+      },
+      "history": {
+        "en-US": {
+          "data": {},
+          "content": [
+            {
+              "data": {},
+              "content": [
+                {
+                  "data": {},
+                  "marks": [],
+                  "value": "Sie umfasste zu Beginn auch die Ankerschmiedegasse. Der Name kommt von den hier wohnenden Reifschlägern. Deren Reeperbahnen befanden sich übrigens 1385 bereits in der späteren Niederstadt.",
+                  "nodeType": "text"
+                }
+              ],
+              "nodeType": "paragraph"
+            }
+          ],
+          "nodeType": "document"
+        }
+      },
+      "source": {
+        "en-US": "Stephan, W. Danzig. Gründung und Straßennamen. Marburg 1954, S 131"
+      },
+      "city": {
+        "en-US": {
+          "sys": {
+            "type": "Link",
+            "linkType": "Entry",
+            "id": "3zagnFyPucQu39zUERI1Or"
+          }
+        }
+      },
+      "images": {
+        "en-US": [
+          {
+            "sys": {
+              "type": "Link",
+              "linkType": "Asset",
+              "id": "1beB3xJtefTJdvcgHguMyj"
+            }
+          }
+        ]
+      }
+    }
+  }
