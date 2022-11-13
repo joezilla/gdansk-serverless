@@ -6,16 +6,24 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "generate:types": "contentful-typescript-codegen --output src/@types/contentful.d.ts"
   },
   "dependencies": {
     "@types/node": "18.11.9",
     "@types/react": "18.0.24",
     "@types/react-dom": "18.0.8",
-    "contentful-management": "^10.19.0",
+    "@upstash/redis": "^1.16.0",
     "next": "13.0.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "tslog": "^3.3.4",
     "typescript": "4.8.4"
+  },
+  "devDependencies": {
+    "contentful": "^9.2.9",
+    "contentful-management": "^10.19.1",
+    "contentful-typescript-codegen": "^3.2.3",
+    "dotenv": "^16.0.3"
   }
 }
