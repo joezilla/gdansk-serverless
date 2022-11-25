@@ -72,6 +72,13 @@ class StreetFeeder implements Feeder<IStreet> {
     log.debug("indexing entry", sourceObject.sys.id);
 
     var toIndex = new AlgoliaObject(sourceObject.sys.id);
+
+    if(!sourceObject.fields.germanName) {
+      log.error("no german name for street. notindexing ", sourceObject.sys.id);
+      return;
+    }
+
+    toIndex["firstLetter"] = sourceObject.fields.germanName[0];
     toIndex["germanName"] = sourceObject.fields.germanName;
     toIndex["polishNames"] = sourceObject.fields.polishNames;
     toIndex["district"] = sourceObject.fields.district;
