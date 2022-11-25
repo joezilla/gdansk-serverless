@@ -87,6 +87,8 @@ class StreetFeeder implements Feeder<IStreet> {
     toIndex["source"] = sourceObject.fields.source;
     toIndex["images"] = sourceObject.fields.images;
 
+    log.debug("Indexing object", toIndex);
+    
     algoliaIndex.saveObject(toIndex);
   }
   
