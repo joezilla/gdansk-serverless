@@ -6,8 +6,7 @@ import {IStreet} from "../../src/@types/contentful";
 import { Entry, Sys, Link, LinkType } from "contentful";
 
 
-import { Logger } from "tslog";
-const log: Logger = new Logger();
+import { log } from 'next-axiom'
 const cache = new ObjectCache();
 
 // //// algolia

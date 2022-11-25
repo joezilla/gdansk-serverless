@@ -3,8 +3,7 @@
  */
 import { Redis } from '@upstash/redis'
 
-import { Logger } from "tslog";
-const log: Logger = new Logger();
+import { log } from 'next-axiom'
 
 type AssetCacheEntry = {
     id: string,
