@@ -88,7 +88,7 @@ class StreetFeeder implements Feeder<IStreet> {
     toIndex["images"] = sourceObject.fields.images;
 
     log.debug("Indexing object", toIndex);
-    
+
     algoliaIndex.saveObject(toIndex);
   }
   
@@ -114,6 +114,7 @@ class IndexingController {
   public async delete(data:FeederObject) {
     let feeder = this.getFeeder(data.objectType);
     if(!feeder) {
+      log.error(`Cannot find feeder for type #{data.objectType}`);
       throw new Error("no feeder found");
     }
     feeder.delete(data.id);
@@ -176,9 +177,9 @@ export  default async function handler(
         let n = new IndexingController();
 
         if(req.method === "POST" || req.method === "PUT") {
-          n.index(toIndex);
+          await n.index(toIndex);
         } else if (req.method === "DELETE") {
-          n.delete(toIndex);
+          await n.delete(toIndex);
         }
         res.status(200).json({ result: "ok" })
       } catch (e) {
@@ -189,6 +190,7 @@ export  default async function handler(
       res.status(401).json({result: "unauthenticated." });
     }
   } catch(err) {
+    log.error("Error in handler", err);
     res.status(500).json({ result: `error: ${err}`});
   }
 }
