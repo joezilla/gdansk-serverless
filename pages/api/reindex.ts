@@ -5,43 +5,28 @@ import {ObjectCache} from "../../lib/objectcache"
 import {IStreet} from "../../src/@types/contentful";
 import { Entry, Sys, Link, LinkType } from "contentful";
 
+
 import { Logger } from "tslog";
 const log: Logger = new Logger();
 const cache = new ObjectCache();
 
-type Nullable<T> = T | null;
-type Data = {
-  result: any
-}
-const LOCALE = "en-US";
+// //// algolia
+// todo make this configurable
+// import { SearchClient } from 'algoliasearch';
+import algoliasearch from 'algoliasearch';
+const searchClient = algoliasearch(
+  process.env.ALGOLIA_APP_ID ?? "",
+  process.env.ALGOLIA_ACCESS_TOKEN ?? "");
+const algoliaIndex = searchClient.initIndex(process.env.ALGOLIA_INDEX_NAME ?? "");
 
+// //// contentful client
 import { Asset, createClient, EntryCollection } from "contentful";
 const contentfulClient = createClient({
   accessToken: process.env.CONTENTFUL_ACCESS_TOKEN,
   space: process.env.CONTENTFUL_SPACE_ID
 });
 
-function extractContent<Any>(data: any, config: any) {
-  let id  = "1beB3xJtefTJdvcgHguMyj";
-
-  let entry = cache.getCachedEntry(id, () => { 
-    return contentfulClient.getAsset(id);
-  }, 5);
-  
-  log.debug("Retrieved entry", entry)  
-}
-
-async function getAsset<Asset>(data: any) {
-  let cache = new ObjectCache();
-  let id  = "1beB3xJtefTJdvcgHguMyj";
-  const entry = await cache.getCachedEntry(id, () => { 
-    log.debug(`Querying contentful asset with id ${id}`);
-    return contentfulClient.getAsset(id);
-  }, 0) as Asset;
-  return entry;
-}
-
-
+// input expected from the web service; compatible with the contentful webhook for algolia.
 class FeederObject  {
   constructor(public id: string, public contentType: "Asset" | "Entry", public objectType: string) {
     this.id = id;
@@ -53,49 +38,59 @@ class FeederObject  {
   }
 }
 
+// tracks dependencies to other objects during indexing for later invalidation
 interface DependencyManager {
   addDependency: (contentId: string) => void;
 }
+
+// yeah, but..
 class DefaultDependencyManager implements DependencyManager {
   addDependency(contentId: string) {
-
+    throw new Error("dependeny tracking not yet implemented");
   }
 }
 
 interface Feeder<T> {
   // index the object in the index
-  index: (object: Entry<T>, DependencyManager: DependencyManager) => void;
-
-  // index the object in the index
- // indexAsset: (object: Asset, DependencyManager: DependencyManager) => void;
-
-  // update the object in the index
-  update: (object: Entry<T>, DependencyManager: DependencyManager) => void;
-
-  /// update asset`
- // udpateAsset: (object: Entry<T>, DependencyManager: DependencyManager) => void;
+  index: (object: T, DependencyManager: DependencyManager) => void;
 
   // delete the object in the index
   delete: (id: string) => void;
 
-  // delete asset from the index
- // deleteAsset: (id: string) => void;
+}
+
+class AlgoliaObject {
+  constructor(public objectID: string) {
+    this.objectID = objectID;
+  }
+  [key: string]: any;
 }
 
 class StreetFeeder implements Feeder<IStreet> {
-  index(object: Entry<IStreet>, DependencyManager: DependencyManager) {
-    log.debug("indexing entry", object);
+  index(sourceObject: IStreet, DependencyManager: DependencyManager) {
+
+    log.debug("indexing entry", sourceObject.sys.id);
+
+    var toIndex = new AlgoliaObject(sourceObject.sys.id);
+    toIndex["germanName"] = sourceObject.fields.germanName;
+    toIndex["polishNames"] = sourceObject.fields.polishNames;
+    toIndex["district"] = sourceObject.fields.district;
+    toIndex["history"] = sourceObject.fields.history;
+    toIndex["city"] = sourceObject.fields.city?.fields.name;
+    toIndex["source"] = sourceObject.fields.source;
+    toIndex["images"] = sourceObject.fields.images;
+
+    algoliaIndex.saveObject(toIndex);
   }
-  update (object: Entry<IStreet>, DependencyManager: DependencyManager) {
-    log.debug("updating entry", object);
-  }
+  
   delete(id: string) {
     log.debug("deleting entry", id);
-
+    algoliaIndex.deleteObject(id);
   }
 }
 
-class NameMeLater { 
+// to be the controller
+class IndexingController { 
 
   private feederList = new Map<string, Feeder<any>>();
 
@@ -107,15 +102,27 @@ class NameMeLater {
     return this.feederList.get(objectType);
   }
 
+  public async delete(data:FeederObject) {
+    let feeder = this.getFeeder(data.objectType);
+    if(!feeder) {
+      throw new Error("no feeder found");
+    }
+    feeder.delete(data.id);
+  }
+
   public async index(data: FeederObject) {
     let dependencyManager = new DefaultDependencyManager();
 
     if ("Asset" === data.contentType) {
+
+      throw new Error("todo");
+      /*&
       const entry = await cache.getCachedEntry(data.id, () => { 
         log.debug(`Querying contentful asset with id ${data.id}`);
         return contentfulClient.getAsset(data.id);
       }, 0) as Asset;
       log.debug("Retrieved entry", entry)
+      */
 
     } else if("Entry" === data.contentType) {
 
@@ -126,9 +133,9 @@ class NameMeLater {
       // get entry
       const entry = await cache.getCachedEntry(data.id, () => { 
         log.debug(`Querying contentful entry with id ${data.id}`);
-        return contentfulClient.getEntry(data.id);
-      }, 0) as Entry<IStreet>;
-      log.debug("Retrieved entry", entry);
+        return contentfulClient.getEntry<IStreet>(data.id);
+      }) as Entry<IStreet>;
+      
       // feed it
       feeder.index(entry, dependencyManager);
 
@@ -138,9 +145,14 @@ class NameMeLater {
 }
 
 
+type ServiceResponse = {
+  result: any
+}
+
+// 
 export  default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<ServiceResponse>
 ) {
   const API_KEY = process.env.API_KEY;
   const SECRET  = req?.headers?.apisecret ?? "";
@@ -152,32 +164,14 @@ export  default async function handler(
         // todo: make this a little more failsafe
         const fromHook = req.body as any;
         const toIndex = new FeederObject(fromHook.sys.id, fromHook.sys.type, fromHook.sys.contentType.sys.id);
-      
-        let n = new NameMeLater();
-        n.index(toIndex);
-/*
-        console.log(`Indexing ${toIndex}`);
+        let n = new IndexingController();
 
-        if ("Asset" === toIndex.contentType) {
-          const entry = await cache.getCachedEntry(toIndex.id, () => { 
-            log.debug(`Querying contentful asset with id ${toIndex.id}`);
-            return contentfulClient.getAsset(toIndex.id);
-          }, 0) as Asset;
-          log.debug("Retrieved entry", entry)
-
-        } else if("Entry" === toIndex.contentType) {
-      
-          const entry = await cache.getCachedEntry(toIndex.id, () => { 
-            log.debug(`Querying contentful entry with id ${toIndex.id}`);
-            return contentfulClient.getEntry(toIndex.id);
-          }, 0) as Entry<IStreet>
-          log.debug("Retrieved entry", entry);
-      }
-*/
-
-        //const theAsset = await getAsset(req.body) as Asset;
-        // console.log(theAsset);
-        // res.status(200).json({ result: theAsset })
+        if(req.method === "POST" || req.method === "PUT") {
+          n.index(toIndex);
+        } else if (req.method === "DELETE") {
+          n.delete(toIndex);
+        }
+        res.status(200).json({ result: "ok" })
       } catch (e) {
         console.log(e);
         res.status(500).json({ result: `error: ${e}`});

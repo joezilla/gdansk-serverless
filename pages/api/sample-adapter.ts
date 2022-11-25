@@ -1,6 +1,6 @@
 
 import "../../lib/objectcache"
-import { Asset, Entry, Sys, Link, ContentType } from "contentful";
+import { Asset, Entry, Sys, Link, LinkType } from "contentful";
 
 import { Logger } from "tslog";
 
@@ -16,13 +16,10 @@ interface ContentRepository<U, T extends Entry<U>> {
 
 // use Link, not Sys
 class Dependencies {
-    entries: Link<ContentType>[] = [];
-    addEntry(entry: Link) {
-        if(!entry.id) {
+    entries: Link<"ContentType">[] = [];
+    addEntry(link: Link<"ContentType">) {
+        if(!link.id) {
             throw new Error("Entry must have an id");
-        }
-        if(!entry.contentType) {
-            throw new Error("Entry must have a linkType");
         }
         this.entries.push(entry);
     }
