@@ -5,6 +5,7 @@ import Cookies from "universal-cookie"
 import { useRouter } from 'next/router';
 import Login from '../components/login';
 
+
 export default function Home({ hasReadPermission }: { hasReadPermission: boolean }) {
   const router = useRouter();
   if (!hasReadPermission) {
@@ -87,7 +88,7 @@ export default function Home({ hasReadPermission }: { hasReadPermission: boolean
 }
 
 // enforce authentication for this page with super simple cookie
-Home.getInitialProps = async (ctx) => {
+Home.getInitialProps = async (ctx : any) => {
   const cookies = new Cookies(ctx.req.headers.cookie);
   return {
     hasReadPermission: cookies.get("hasReadPermission") === process.env.MANAGEMENT_PASSWORD
