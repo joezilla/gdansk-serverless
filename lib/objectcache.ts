@@ -53,4 +53,8 @@ export class ObjectCache {
             return value;
         }
     }
+
+    async clearCache() {
+        await redisClient.flushdb();
+    }
 }
