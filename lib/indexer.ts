@@ -189,7 +189,7 @@ export class IndexingController {
                     // index
                     try {                                               
                          // feed it
-                         feeder.index(item, dependencyManager);                    
+                         feeder?.index(item, dependencyManager);                    
                     } catch (e) {
                         log.error(`Failed to index ${item.sys.id}`, e);
                     }
