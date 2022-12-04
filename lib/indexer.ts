@@ -161,7 +161,7 @@ export class IndexingController {
             }) as Entry<IStreet>;
 
 
-            log.debug("Contentful returned", entry)
+            // log.debug("Contentful returned", entry)
 
             // feed it
             feeder.index(entry, dependencyManager);
@@ -185,7 +185,7 @@ export class IndexingController {
             batch = 0;
             await contentfulClient.getEntries({ locale: "en-US", content_type: type, skip: offset, limit: 100}).then((response) =>
                 response.items.map(item => {
-                    console.debug(`Reindexing ${item.sys.contentType.sys.id}-${item.sys.id}`);
+                    log.debug(`Reindexing ${item.sys.contentType.sys.id}-${item.sys.id}`);
                     // index
                     try {                                               
                          // feed it
@@ -199,7 +199,7 @@ export class IndexingController {
                 ));
             /// console.log("current batch size was: ", batch);
         } while (batch > 0);
-        console.info(`Reindexed ${offset} items`);
+        log.info(`Reindexed ${offset} items`);
     }
 
 }

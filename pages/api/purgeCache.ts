@@ -22,6 +22,7 @@ export default async function handler(
         if (SECRET === API_KEY) {
             // Process the POST request
             try {
+                log.info("Purging cache");
                 cache.clearCache();
                 res.status(200).json({ result: "ok" })
             } catch (e) {

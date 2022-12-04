@@ -38,12 +38,17 @@ export class ObjectCache {
         if(entry) {
             log.debug(`cache hit for ${key}`);
             if(timeout > 0 && entry.timestamp + timeout * 1000 < Date.now()) {
-                // cache expired
+                // cache expired, reload the docume
                 var value = await fn(id);
+                // save back into cache
                 await redisClient.set(key, JSON.stringify({id, timestamp: Date.now(), value}));
                 return value;
             } else {
-                return JSON.parse(entry.value);
+                // have an entry
+                if (!entry.value) {
+                    console.log("WATF, ENTRY IS EMPTY");
+                }
+                return entry.value;
             }
         } else {
             log.debug(`cache miss for ${key}`);
