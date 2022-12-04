@@ -89,7 +89,7 @@ export class AbstractIndexObject {
     locale: string = "en-US";
 
     // index object for streets
-    constructor( {objectID, type, tags, locale} : {objectID: string, type: string, tags: string[], locale:string} ) {
+    constructor({ objectID, type, tags, locale }: { objectID: string, type: string, tags: string[], locale: string }) {
         this.objectID = objectID;
         this.type = type;
         this.tags = tags;
@@ -170,4 +170,36 @@ export class IndexingController {
             log.debug(`ignoring object of type ${data.contentType} due to missing handler`);
         }
     }
+
+    public async indexAll(type: string) {
+        let dependencyManager = new DefaultDependencyManager();
+        let offset = 0;
+        let batch = 0;
+        // find the right feeder for this type
+        let feeder = this.getFeeder(type);
+        if (!feeder) {
+            throw new Error("no feeder found");
+        }
+        // go in batches of 100, until nothing else is returned.
+        do {
+            batch = 0;
+            await contentfulClient.getEntries({ locale: "en-US", content_type: type, skip: offset, limit: 100}).then((response) =>
+                response.items.map(item => {
+                    console.debug(`Reindexing ${item.sys.contentType.sys.id}-${item.sys.id}`);
+                    // index
+                    try {                                               
+                         // feed it
+                         feeder.index(item, dependencyManager);                    
+                    } catch (e) {
+                        log.error(`Failed to index ${item.sys.id}`, e);
+                    }
+                    offset++;
+                    batch++;
+                }
+                ));
+            /// console.log("current batch size was: ", batch);
+        } while (batch > 0);
+        console.info(`Reindexed ${offset} items`);
+    }
+
 }
