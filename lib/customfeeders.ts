@@ -93,6 +93,7 @@ class PostIndexObject extends AbstractIndexObject {
         locale: init?.locale ?? "en-US",
         tags: init?.tags ?? []
       });
+      Object.assign(this, init);
     }
     title: string | undefined;
     content: any;

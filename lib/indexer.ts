@@ -139,7 +139,7 @@ export class IndexingController {
 
         if ("Asset" === data.contentType) {
 
-            throw new Error("todo");
+            throw new Error("Asset indexing not yet supported.");
             /*&
             const entry = await cache.getCachedEntry(data.id, () => { 
               log.debug(`Querying contentful asset with id ${data.id}`);
@@ -161,7 +161,7 @@ export class IndexingController {
             }) as Entry<IStreet>;
 
 
-            // log.debug("Contentful returned", entry)
+            log.debug("Contentful returned", entry)
 
             // feed it
             feeder.index(entry, dependencyManager);

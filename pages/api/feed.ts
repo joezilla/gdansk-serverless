@@ -18,7 +18,7 @@
 **/
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { IStreet, IPost } from "../../src/@types/contentful";
-import { AbstractIndexObject, IndexingController, AbstractFeeder,DependencyManager, FeederObject } from "../../lib/indexer";
+import { IndexingController, FeederObject } from "../../lib/indexer";
 import { StreetFeeder, PostFeeder } from "../../lib/customfeeders";
 import { isEmptyString } from "../../lib/util";
 import { log } from 'next-axiom'
@@ -43,7 +43,7 @@ export default async function handler(
         // todo: make this a little more failsafe
         const fromHook = req.body as any;
 
-        log.debug("Received request", fromHook);
+        //log.debug("Received request", fromHook);
 
         const toIndex = new FeederObject(fromHook.sys.id, fromHook.sys.type, fromHook.sys.contentType.sys.id);
         let n = new IndexingController();

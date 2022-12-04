@@ -33,28 +33,24 @@ export class ObjectCache {
         log.debug(`Cache timeout is ${timeout}`);
         //  
         // retrieve the object from redis
-        const key = `asset:${id}`;
+        const key = `${id}`;
         const entry = timeout < 0 ? null : await redisClient.get(key) as AssetCacheEntry;
         if(entry) {
-            log.debug(`cache hit for ${key}`);
             if(timeout > 0 && entry.timestamp + timeout * 1000 < Date.now()) {
+                log.debug(`refreshing stale cache entry ${key}`);
                 // cache expired, reload the docume
                 var value = await fn(id);
                 // save back into cache
                 await redisClient.set(key, JSON.stringify({id, timestamp: Date.now(), value}));
                 return value;
-            } else {
-                // have an entry
-                if (!entry.value) {
-                    console.log("WATF, ENTRY IS EMPTY");
-                }
+            } else {          
+                log.debug(`cache hit for ${key} yielded ${entry.value}`);      
                 return entry.value;
             }
         } else {
             log.debug(`cache miss for ${key}`);
             var value = await fn(id);
-            var stringifiedValue = JSON.stringify(value);
-            await redisClient.set(key, JSON.stringify({id, timestamp: Date.now(), stringifiedValue}));
+            await redisClient.set(key, JSON.stringify({id, timestamp: Date.now(), value}));
             return value;
         }
     }
